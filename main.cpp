@@ -2,10 +2,13 @@
 #include "deque.h"
 #include <iostream>
 #include <boost/test/included/unit_test.hpp>
+#include <deque>
+
+const int LARGE_TEST_SIZE = (int)(1e7);
 
 BOOST_AUTO_TEST_SUITE (dequetest) // name of the test suite is stringtest
 
-BOOST_AUTO_TEST_CASE (test1)
+BOOST_AUTO_TEST_CASE (simply_test)
 {
     Deque <int> deque;
     int n = 5;
@@ -31,6 +34,57 @@ BOOST_AUTO_TEST_CASE (test1)
     for (int i = 0; i < (int)deque.size(); ++i)
         std::cout << deque[i] << " ";
     std::cout << std::endl;
+}
+
+BOOST_AUTO_TEST_CASE(random_push_pop1)
+{
+    Deque<int> deque;
+    int n = LARGE_TEST_SIZE;
+    std::deque<int> dequeTrue;
+    for (int i = 0; i < n; ++i) {
+        int elem = rand();
+        if (rand() & 1) {
+            deque.push_back(elem);
+            dequeTrue.push_back(elem);
+        } else {
+            deque.push_front(elem);
+            dequeTrue.push_back(elem);
+        }
+    }
+    while (!deque.empty()) {
+        if (rand() & 1) {
+            deque.pop_front();
+            dequeTrue.pop_front();
+        } else {
+            deque.pop_back();
+            dequeTrue.pop_back();
+        }
+    }
+}
+
+BOOST_AUTO_TEST_CASE(random_operations)
+{
+    Deque<int> deque;
+    std::deque<int> dequeTrue;
+    int n = LARGE_TEST_SIZE;
+    for (int i = 0; i < n; ++i) {
+        int elem = rand();
+        int chose = rand();
+        if (chose == 0) {
+            deque.push_back(elem);
+            dequeTrue.push_back(elem);
+        } else if (chose == 1) {
+            deque.push_front(elem);
+            dequeTrue.push_front(elem);
+        }
+        else if (chose == 2 && !deque.empty()) {
+            deque.pop_front();
+            dequeTrue.pop_front();
+        } else if (!deque.empty()) {
+            deque.pop_back();
+            dequeTrue.pop_back();
+        }
+    }
 }
 
 BOOST_AUTO_TEST_SUITE_END( )
