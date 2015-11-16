@@ -86,7 +86,7 @@ Iterator<ValueType> Iterator<ValueType>::movePointer(int steps)
     if (left_ <= right_) {
         if (pos_ < left_)
             throw std::range_error("negative index of iterator");
-        if (pos_ >= right_)
+        if (pos_ > right_)
             throw std::range_error("index of iterator is too large");
     } else {
         if (!((left_ <= pos_ && pos_ < capacity_) || (0 <= pos_ && pos_ <= right_)))

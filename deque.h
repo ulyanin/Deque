@@ -1,7 +1,6 @@
 #ifndef DEQUE_H
 #define DEQUE_H
 
-#include "ideque.h"
 #include "deque_iterator.h"
 #include <iterator>
 #include <cstring>
@@ -10,7 +9,8 @@
 const size_t MIN_CAPACITY = 4;
 
 template <class T>
-class Deque: public IDeque<T> {
+class Deque
+{
 public:
     typedef DequeIterator::Iterator<T> iterator;
     typedef DequeIterator::Iterator<const T> const_iterator;

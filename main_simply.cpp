@@ -9,7 +9,7 @@ int main()
     for (int i = 0; i < n; ++i)
         deque.push_back(i);
     for (int i = 0; i < n; ++i)
-        deque.push_front(2 * i);
+        deque.push_front(2 * i + 1);
     for (Deque<int>::iterator it = deque.begin(); it != deque.end(); ++it) {
         std::cout << *it << " ";
     }
@@ -27,8 +27,13 @@ int main()
         deque.pop_back();
         deque.pop_front();
     }
-    for (int i = 0; i < (int)deque.size(); ++i)
-        std::cout << deque[i] << " ";
+    for (Deque<int>::const_iterator it = deque.cbegin(); it != deque.cend(); ++it) {
+        std::cout << *it << " ";
+    }
+    std::cout << std::endl;
+    for (auto it = deque.crbegin(); it != deque.crend(); ++it) {
+        std::cout << *it << " ";
+    }
     std::cout << std::endl;
 }
 
