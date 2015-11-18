@@ -1,6 +1,7 @@
 #define BOOST_TEST_MODULE dequetest test
 #include "deque.h"
 #include <iostream>
+#include <algorithm>
 #include <boost/test/included/unit_test.hpp>
 #include <deque>
 
@@ -85,6 +86,52 @@ BOOST_AUTO_TEST_CASE(random_operations)
             dequeTrue.pop_back();
         }
     }
+    BOOST_CHECK_EQUAL(deque.size(), dequeTrue.size());
+    for (size_t i = 0; i < deque.size(); ++i)
+        BOOST_CHECK_EQUAL(deque[i], dequeTrue[i]);
+    BOOST_CHECK_EQUAL_COLLECTIONS(deque.begin(), deque.end(), dequeTrue.begin(), dequeTrue.end());
+}
+
+BOOST_AUTO_TEST_CASE(sort_deques)
+{
+    Deque<int> deque;
+    std::deque<int> dequeTrue;
+    int n = LARGE_TEST_SIZE;
+    for (int i = 0; i < n; ++i) {
+        int elem = rand();
+        deque.push_back(elem);
+        dequeTrue.push_back(elem);
+    }
+    boost::timer t1;
+    std::sort(deque.begin(), deque.end());
+    std::cout << t1.elapsed() << std::endl;
+
+    boost::timer t2;
+    std::sort(dequeTrue.begin(), dequeTrue.end());
+    std::cout << t2.elapsed() << std::endl;
+    BOOST_CHECK_EQUAL_COLLECTIONS(deque.begin(), deque.end(), dequeTrue.begin(), dequeTrue.end());
+}
+
+BOOST_AUTO_TEST_CASE(sort_deques_reversed)
+{
+    Deque<int> deque;
+    std::deque<int> dequeTrue;
+    int n = LARGE_TEST_SIZE;
+    for (int i = 0; i < n; ++i) {
+        int elem = rand();
+        deque.push_back(elem);
+        dequeTrue.push_back(elem);
+    }
+    boost::timer t1;
+    std::sort(deque.rbegin(), deque.rend());
+    std::cout << t1.elapsed() << std::endl;
+
+    boost::timer t2;
+    std::sort(dequeTrue.rbegin(), dequeTrue.rend());
+    std::cout << t2.elapsed() << std::endl;
+    std::cout << deque.size() << std::endl;
+    std::cout << dequeTrue.size() << std::endl;
+    BOOST_CHECK_EQUAL_COLLECTIONS(deque.begin(), deque.end(), dequeTrue.begin(), dequeTrue.end());
 }
 
 BOOST_AUTO_TEST_SUITE_END( )
