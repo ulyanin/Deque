@@ -10,17 +10,18 @@
 const size_t MIN_CAPACITY = 4;
 
 namespace DequeIterator {
-    template <class ValueType>
+    template <class IterT, class DequeT>
         class Iterator;
 }
 
 template <class T>
 class Deque
 {
-    friend class DequeIterator::Iterator<T>;
+    friend class DequeIterator::Iterator<T, T>;
+    friend class DequeIterator::Iterator<const T, T>;
 public:
-    typedef DequeIterator::Iterator<T> iterator;
-    typedef DequeIterator::Iterator<const T> const_iterator;
+    typedef DequeIterator::Iterator<T, T> iterator;
+    typedef DequeIterator::Iterator<const T, T> const_iterator;
     typedef std::reverse_iterator<iterator> reverse_iterator;
     typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
     Deque(size_t=0);
@@ -132,8 +133,10 @@ T * Deque<T>::getData(size_t minBufferSize) const
         piece1 = realSize_ - left_;
         piece2 = right_;
     }
-    memcpy(dest, data_ + left_, sizeof(T) * piece1);
-    memcpy(dest + piece1, data_, sizeof(T) * piece2);
+    std::copy(data_ + left_, data_ + left_ + piece1, dest);
+    std::copy(data_, data_ + piece2, dest + piece1);
+    //memcpy(dest, data_ + left_, sizeof(T) * piece1);
+    //memcpy(dest + piece1, data_, sizeof(T) * piece2);
     return dest;
 }
 
@@ -357,13 +360,13 @@ typename Deque<T>::reverse_iterator Deque<T>::rbegin()
 template <class T>
 typename Deque<T>::const_reverse_iterator Deque<T>::rbegin() const
 {
-    return const_reverse_iterator(iterator(data_ + right_, *this));
+    return const_reverse_iterator(const_iterator(data_ + right_, *this));
 }
 
 template <class T>
 typename Deque<T>::const_reverse_iterator Deque<T>::crbegin() const
 {
-    return const_reverse_iterator(iterator(data_ + right_, *this));
+    return const_reverse_iterator(const_iterator(data_ + right_, *this));
 }
 
 template <class T>
@@ -375,13 +378,13 @@ typename Deque<T>::reverse_iterator Deque<T>::rend()
 template <class T>
 typename Deque<T>::const_reverse_iterator Deque<T>::rend() const
 {
-    return const_reverse_iterator(iterator(data_ + left_, *this));
+    return const_reverse_iterator(const_iterator(data_ + left_, *this));
 }
 
 template <class T>
 typename Deque<T>::const_reverse_iterator Deque<T>::crend() const
 {
-    return const_reverse_iterator(iterator(data_ + left_, *this));
+    return const_reverse_iterator(const_iterator(data_ + left_, *this));
 }
 
 #endif

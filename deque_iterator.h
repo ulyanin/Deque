@@ -10,17 +10,18 @@ class Deque;
 
 namespace DequeIterator {
 
-    template <class ValueType>
+    template <typename IterT, typename DequeT=IterT> //iterator pointer value type and container value type
     class Iterator
-        : public std::iterator<std::random_access_iterator_tag, ValueType>
+        : public std::iterator<std::random_access_iterator_tag, IterT>
     {
-        friend class Deque<ValueType>;
+        friend class Deque<DequeT>;
     public:
-        Iterator(ValueType * ptr, const Deque<ValueType> &);
+        Iterator(IterT * ptr, const Deque<DequeT> &);
         Iterator(const Iterator &);
         Iterator& operator=(const Iterator &);
-        ValueType operator*() const;
-        ValueType& operator*();
+        IterT operator*() const;
+        IterT& operator*();
+        IterT * operator->();
         bool operator<(const Iterator &);
         bool operator<=(const Iterator &);
         bool operator==(const Iterator &);
@@ -31,32 +32,34 @@ namespace DequeIterator {
         Iterator& operator--();
         Iterator operator+(int) const;
         Iterator operator-(int) const;
-        int operator-(const Iterator &);
+        Iterator& operator+=(int);
+        Iterator& operator-=(int);
+        int operator-(const Iterator &) const;
     private:
         int relativePos() const;
         Iterator& movePointer(int);
-        ValueType * ptr_;
-        const Deque<ValueType> * owner_;
+        IterT * ptr_;
+        const Deque<DequeT> * owner_;
         int pos_; // position in Array [0..capacity): [left..right] or ([left..capacity) + [0..right])
     };
 
-    template <class ValueType>
-    Iterator<ValueType>::Iterator(ValueType * ptr, const Deque<ValueType> &dequeOwner)
+    template <typename IterT, typename DequeT>
+    Iterator<IterT, DequeT>::Iterator(IterT * ptr, const Deque<DequeT> &dequeOwner)
         : ptr_(ptr)
         , owner_(&dequeOwner)
     {
         pos_ = ptr - dequeOwner.data_;
     }
 
-    template <class ValueType>
-    Iterator<ValueType>::Iterator(const Iterator &other)
+    template <typename IterT, typename DequeT>
+    Iterator<IterT, DequeT>::Iterator(const Iterator<IterT, DequeT> &other)
         : ptr_(other.ptr_)
         , owner_(other.owner_)
         , pos_(other.pos_)
     {}
 
-    template <class ValueType>
-    Iterator<ValueType>& Iterator<ValueType>::operator=(const Iterator<ValueType> &other)
+    template <typename IterT, typename DequeT>
+    Iterator<IterT, DequeT>& Iterator<IterT, DequeT>::operator=(const Iterator<IterT, DequeT> &other)
     {
         ptr_ = other.ptr_;
         owner_ = other.owner_;
@@ -64,53 +67,59 @@ namespace DequeIterator {
         return *this;
     }
 
-    template <class ValueType>
-    ValueType Iterator<ValueType>::operator*() const
+    template <typename IterT, typename DequeT>
+    IterT Iterator<IterT, DequeT>::operator*() const
     {
         return *ptr_;
     }
 
-    template <class ValueType>
-    ValueType& Iterator<ValueType>::operator*()
+    template <typename IterT, typename DequeT>
+    IterT& Iterator<IterT, DequeT>::operator*()
     {
         return *ptr_;
     }
 
-    template <class ValueType>
-    bool Iterator<ValueType>::operator==(const Iterator<ValueType> &other)
+    template <typename IterT, typename DequeT>
+    IterT* Iterator<IterT, DequeT>::operator->()
+    {
+        return ptr_;
+    }
+
+    template <typename IterT, typename DequeT>
+    bool Iterator<IterT, DequeT>::operator==(const Iterator<IterT, DequeT> &other)
     {
         return ptr_ == other.ptr_;
     }
 
 
-    template <class ValueType>
-    int Iterator<ValueType>::relativePos() const
+    template <typename IterT, typename DequeT>
+    int Iterator<IterT, DequeT>::relativePos() const
     {
         if (pos_ >= owner_->left_)
             return pos_ - owner_->left_;
         return owner_->realSize_ - pos_ + owner_->right_;
     }
 
-    template <class ValueType>
-    bool Iterator<ValueType>::operator<(const Iterator<ValueType> &other)
+    template <typename IterT, typename DequeT>
+    bool Iterator<IterT, DequeT>::operator<(const Iterator<IterT, DequeT> &other)
     {
         return relativePos() < other.relativePos();
 
     }
-    template <class ValueType>
-    bool Iterator<ValueType>::operator<=(const Iterator<ValueType> &other)
+    template <typename IterT, typename DequeT>
+    bool Iterator<IterT, DequeT>::operator<=(const Iterator<IterT, DequeT> &other)
     {
         return operator<(*this, other) || operator==(*this, other);
     }
 
-    template <class ValueType>
-    bool Iterator<ValueType>::operator!=(const Iterator<ValueType> &other)
+    template <typename IterT, typename DequeT>
+    bool Iterator<IterT, DequeT>::operator!=(const Iterator<IterT, DequeT> &other)
     {
         return ptr_ != other.ptr_;
     }
 
-    template <class ValueType>
-    Iterator<ValueType>& Iterator<ValueType>::movePointer(int steps)
+    template <typename IterT, typename DequeT>
+    Iterator<IterT, DequeT>& Iterator<IterT, DequeT>::movePointer(int steps)
     {
         int oldPos = pos_;
         pos_ += steps;
@@ -137,50 +146,62 @@ namespace DequeIterator {
         return *this;
     }
 
-    template <class ValueType>
-    Iterator<ValueType>& Iterator<ValueType>::operator++()
+    template <typename IterT, typename DequeT>
+    Iterator<IterT, DequeT>& Iterator<IterT, DequeT>::operator++()
     {
         return this->movePointer(1);
     }
 
-    template <class ValueType>
-    Iterator<ValueType> Iterator<ValueType>::operator++(int)
+    template <typename IterT, typename DequeT>
+    Iterator<IterT, DequeT> Iterator<IterT, DequeT>::operator++(int)
     {
-        Iterator<ValueType> tmp(*this);
+        Iterator<IterT, DequeT> tmp(*this);
         this->operator++();
         return tmp;
     }
 
-    template <class ValueType>
-    Iterator<ValueType>& Iterator<ValueType>::operator--()
+    template <typename IterT, typename DequeT>
+    Iterator<IterT, DequeT>& Iterator<IterT, DequeT>::operator--()
     {
         return this->movePointer(-1);
     }
 
-    template <class ValueType>
-    Iterator<ValueType> Iterator<ValueType>::operator--(int)
+    template <typename IterT, typename DequeT>
+    Iterator<IterT, DequeT> Iterator<IterT, DequeT>::operator--(int)
     {
-        Iterator<ValueType> tmp(*this);
+        Iterator<IterT, DequeT> tmp(*this);
         this->operator--();
         return tmp;
     }
 
-    template <class ValueType>
-    Iterator<ValueType> Iterator<ValueType>::operator-(int steps) const
+    template <typename IterT, typename DequeT>
+    Iterator<IterT, DequeT> Iterator<IterT, DequeT>::operator-(int steps) const
     {
-        Iterator<ValueType> tmp(*this);
+        Iterator<IterT, DequeT> tmp(*this);
         return tmp.movePointer(-steps);
     }
 
-    template <class ValueType>
-    Iterator<ValueType> Iterator<ValueType>::operator+(int steps) const
+    template <typename IterT, typename DequeT>
+    Iterator<IterT, DequeT> Iterator<IterT, DequeT>::operator+(int steps) const
     {
-        Iterator<ValueType> tmp(*this);
+        Iterator<IterT, DequeT> tmp(*this);
         return tmp.movePointer(+steps);
     }
 
-    template <class ValueType>
-    int Iterator<ValueType>::operator-(const Iterator <ValueType> &other)
+    template <typename IterT, typename DequeT>
+    Iterator<IterT, DequeT>& Iterator<IterT, DequeT>::operator+=(int steps)
+    {
+        return this->movePointer(steps);
+    }
+
+    template <typename IterT, typename DequeT>
+    Iterator<IterT, DequeT>& Iterator<IterT, DequeT>::operator-=(int steps)
+    {
+        return this->movePointer(-steps);
+    }
+
+    template <typename IterT, typename DequeT>
+    int Iterator<IterT, DequeT>::operator-(const Iterator<IterT, DequeT> &other) const
     {
         return this->relativePos() - other.relativePos();
     }
