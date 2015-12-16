@@ -57,7 +57,7 @@ public:
 private:
     int decMod(int &) const;
     int incMod(int &) const;
-    void tryExtend();
+    T * tryExtend();
     void tryShrink();
     T * data_;
     size_t realSize_;
@@ -88,7 +88,8 @@ Deque<T>::Deque(const Deque &deque)
 {
     right_ = static_cast<int>(size_);
     data_ = new T [realSize_ = std::max(MIN_CAPACITY, realSize_)];
-    memcpy(data_, deque.data_, sizeof(T) * size_);
+    std::copy(deque.data_, deque.data_ + size_, data_);
+    //memcpy(data_, deque.data_, sizeof(T) * size_);
 }
 
 template <class T>
@@ -141,16 +142,18 @@ T * Deque<T>::getData(size_t minBufferSize) const
 }
 
 template <class T>
-void Deque<T>::tryExtend()
+T * Deque<T>::tryExtend()
 {
     if (size_ + 1 >= realSize_) {
         T * buffer = this->getData(realSize_ * 2);
         realSize_ *= 2;
-        delete [] data_;
-        data_ = buffer;
+        //delete [] data_;
+        std::swap(data_, buffer);
         left_ = 0;
         right_ = static_cast<int>(size_);
+        return buffer;
     }
+    return nullptr;
 }
 
 template <class T>
@@ -209,19 +212,21 @@ T Deque<T>::pop_front()
 template <class T>
 void Deque<T>::push_back(const T &elem)
 {
-    this->tryExtend();
+    T * tmp = this->tryExtend();
     ++size_;
     data_[right_] = elem;
     this->incMod(right_);
+    delete [] tmp;
 }
 
 template<class T>
 void Deque<T>::push_front(const T &elem)
 {
-    this->tryExtend();
+    T * tmp = this->tryExtend();
     ++size_;
     this->decMod(left_);
     data_[left_] = elem;
+    delete [] tmp;
 }
 
 template <class T>

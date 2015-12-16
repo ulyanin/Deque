@@ -5,7 +5,7 @@
 #include <boost/test/included/unit_test.hpp>
 #include <deque>
 
-const int LARGE_TEST_SIZE = (int)(1e6);
+const int LARGE_TEST_SIZE = (int)(1e7);
 
 
 BOOST_AUTO_TEST_CASE (simply_test)

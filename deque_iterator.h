@@ -17,6 +17,7 @@ namespace DequeIterator {
         friend class Deque<DequeT>;
     public:
         Iterator(IterT * ptr, const Deque<DequeT> &);
+        Iterator();
         Iterator(const Iterator &);
         Iterator& operator=(const Iterator &);
         IterT operator*() const;
@@ -42,6 +43,13 @@ namespace DequeIterator {
         const Deque<DequeT> * owner_;
         int pos_; // position in Array [0..capacity): [left..right] or ([left..capacity) + [0..right])
     };
+
+    template <typename IterT, typename DequeT>
+    Iterator<IterT, DequeT>::Iterator()
+        : ptr_(nullptr)
+        , owner_(nullptr)
+        , pos_(0)
+    {}
 
     template <typename IterT, typename DequeT>
     Iterator<IterT, DequeT>::Iterator(IterT * ptr, const Deque<DequeT> &dequeOwner)
