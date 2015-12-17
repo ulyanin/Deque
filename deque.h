@@ -6,6 +6,7 @@
 #include <cstring>
 #include <algorithm>
 #include <iostream>
+#include <memory>
 
 const size_t MIN_CAPACITY = 4;
 
@@ -41,7 +42,7 @@ public:
     bool empty() const;
     size_t size() const;
     void shrink_to_fit();
-    T * getData(size_t=0) const;
+    std::unique_ptr<T []> getData(size_t=0) const;
     iterator begin();
     const_iterator begin() const;
     const_iterator cbegin() const;
@@ -57,9 +58,9 @@ public:
 private:
     int decMod(int &) const;
     int incMod(int &) const;
-    T * tryExtend();
+    void tryExtend();
     void tryShrink();
-    T * data_;
+    std::unique_ptr<T[]> data_;
     size_t realSize_;
     size_t size_;
     int left_, right_;
@@ -71,13 +72,13 @@ Deque<T>::Deque(size_t size)
     , left_(0)
     , right_(0)
 {
-    data_ = new T[realSize_ = std::max(MIN_CAPACITY, size_ * 2)];
+    data_ = std::unique_ptr<T []> (new T[realSize_ = std::max(MIN_CAPACITY, size_ * 2)]);
 }
 
 template <class T>
 Deque<T>::~Deque<T>()
 {
-    delete [] data_;
+    //delete [] data_;
 }
 
 template <class T>
@@ -87,9 +88,8 @@ Deque<T>::Deque(const Deque &deque)
     , left_(0)
 {
     right_ = static_cast<int>(size_);
-    data_ = new T [realSize_ = std::max(MIN_CAPACITY, realSize_)];
-    std::copy(deque.data_, deque.data_ + size_, data_);
-    //memcpy(data_, deque.data_, sizeof(T) * size_);
+    data_ = std::unique_ptr<T []> (new T [realSize_ = std::max(MIN_CAPACITY, realSize_)]);
+    std::copy(deque.data_.get(), deque.data_.get() + size_, data_.get());
 }
 
 template <class T>
@@ -99,7 +99,7 @@ Deque<T>::Deque(Deque &&deque)
     , left_(deque.left_)
     , right_(deque.right_)
 {
-    data_ = deque.data_;
+    data_ = std::move(deque.data_);
     deque.data_ = nullptr;
 }
 
@@ -123,9 +123,9 @@ int Deque<T>::incMod(int &index) const
 }
 
 template <class T>
-T * Deque<T>::getData(size_t minBufferSize) const
+std::unique_ptr<T []> Deque<T>::getData(size_t minBufferSize) const
 {
-    T * dest = new T [std::max(minBufferSize, size_)];
+    std::unique_ptr<T []> dest(new T [std::max(minBufferSize, size_)]);
     size_t piece1, piece2;
     if (left_ <= right_) {
         piece1 = size_;
@@ -134,34 +134,28 @@ T * Deque<T>::getData(size_t minBufferSize) const
         piece1 = realSize_ - left_;
         piece2 = right_;
     }
-    std::copy(data_ + left_, data_ + left_ + piece1, dest);
-    std::copy(data_, data_ + piece2, dest + piece1);
-    //memcpy(dest, data_ + left_, sizeof(T) * piece1);
-    //memcpy(dest + piece1, data_, sizeof(T) * piece2);
+    std::copy(data_.get() + left_, data_.get() + left_ + piece1, dest.get());
+    std::copy(data_.get(), data_.get() + piece2, dest.get() + piece1);
     return dest;
 }
 
 template <class T>
-T * Deque<T>::tryExtend()
+void Deque<T>::tryExtend()
 {
     if (size_ + 1 >= realSize_) {
-        T * buffer = this->getData(realSize_ * 2);
+        std::unique_ptr<T []> buffer(std::move(this->getData(realSize_ * 2)));
         realSize_ *= 2;
-        //delete [] data_;
-        std::swap(data_, buffer);
+        data_.swap(buffer);
         left_ = 0;
         right_ = static_cast<int>(size_);
-        return buffer;
     }
-    return nullptr;
 }
 
 template <class T>
 void Deque<T>::shrink_to_fit()
 {
-    T * buffer = this->getData();
-    delete [] data_;
-    data_ = buffer;
+    std::unique_ptr<T []> buffer(std::move(this->getData()));
+    data_.swap(buffer);
     left_ = 0;
     right_ = static_cast<int>(size_);
     realSize_ = size_;
@@ -172,10 +166,9 @@ template <class T>
 void Deque<T>::tryShrink()
 {
     if (realSize_ > 4 && size_ * 4 <= realSize_) {
-        T * buffer = this->getData(realSize_ / 2);
+        std::unique_ptr<T []> buffer(std::move(this->getData(realSize_ / 2)));
         realSize_ /= 2;
-        delete [] data_;
-        data_ = buffer;
+        data_.swap(buffer);
         left_ = 0;
         right_ = static_cast<int>(size_);
     }
@@ -212,21 +205,19 @@ T Deque<T>::pop_front()
 template <class T>
 void Deque<T>::push_back(const T &elem)
 {
-    T * tmp = this->tryExtend();
+    this->tryExtend();
     ++size_;
     data_[right_] = elem;
     this->incMod(right_);
-    delete [] tmp;
 }
 
 template<class T>
 void Deque<T>::push_front(const T &elem)
 {
-    T * tmp = this->tryExtend();
+    this->tryExtend();
     ++size_;
     this->decMod(left_);
     data_[left_] = elem;
-    delete [] tmp;
 }
 
 template <class T>
@@ -323,73 +314,73 @@ bool Deque<T>::empty() const
 template <class T>
 typename Deque<T>::iterator Deque<T>::begin()
 {
-    return iterator(data_ + left_, *this);
+    return iterator(data_.get() + left_, *this);
 }
 
 template <class T>
 typename Deque<T>::const_iterator Deque<T>::begin() const
 {
-    return const_iterator(data_ + left_, *this);
+    return const_iterator(data_.get() + left_, *this);
 }
 
 template <class T>
 typename Deque<T>::const_iterator Deque<T>::cbegin() const
 {
-    return const_iterator(data_ + left_, *this);
+    return const_iterator(data_.get() + left_, *this);
 }
 
 template <class T>
 typename Deque<T>::iterator Deque<T>::end()
 {
-    return iterator(data_ + right_, *this);
+    return iterator(data_.get() + right_, *this);
 }
 
 template <class T>
 typename Deque<T>::const_iterator Deque<T>::end() const
 {
-    return const_iterator(data_ + right_, *this);
+    return const_iterator(data_.get() + right_, *this);
 }
 
 template <class T>
 typename Deque<T>::const_iterator Deque<T>::cend() const
 {
-    return const_iterator(data_ + right_, *this);
+    return const_iterator(data_.get() + right_, *this);
 }
 
 template <class T>
 typename Deque<T>::reverse_iterator Deque<T>::rbegin()
 {
-    return reverse_iterator(iterator(data_ + right_, *this));
+    return reverse_iterator(iterator(data_.get() + right_, *this));
 }
 
 template <class T>
 typename Deque<T>::const_reverse_iterator Deque<T>::rbegin() const
 {
-    return const_reverse_iterator(const_iterator(data_ + right_, *this));
+    return const_reverse_iterator(const_iterator(data_.get() + right_, *this));
 }
 
 template <class T>
 typename Deque<T>::const_reverse_iterator Deque<T>::crbegin() const
 {
-    return const_reverse_iterator(const_iterator(data_ + right_, *this));
+    return const_reverse_iterator(const_iterator(data_.get() + right_, *this));
 }
 
 template <class T>
 typename Deque<T>::reverse_iterator Deque<T>::rend()
 {
-    return reverse_iterator(iterator(data_ + left_, *this));
+    return reverse_iterator(iterator(data_.get() + left_, *this));
 }
 
 template <class T>
 typename Deque<T>::const_reverse_iterator Deque<T>::rend() const
 {
-    return const_reverse_iterator(const_iterator(data_ + left_, *this));
+    return const_reverse_iterator(const_iterator(data_.get() + left_, *this));
 }
 
 template <class T>
 typename Deque<T>::const_reverse_iterator Deque<T>::crend() const
 {
-    return const_reverse_iterator(const_iterator(data_ + left_, *this));
+    return const_reverse_iterator(const_iterator(data_.get() + left_, *this));
 }
 
 #endif

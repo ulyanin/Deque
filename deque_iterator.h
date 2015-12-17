@@ -56,7 +56,7 @@ namespace DequeIterator {
         : ptr_(ptr)
         , owner_(&dequeOwner)
     {
-        pos_ = ptr - dequeOwner.data_;
+        pos_ = ptr - dequeOwner.data_.get();
     }
 
     template <typename IterT, typename DequeT>
