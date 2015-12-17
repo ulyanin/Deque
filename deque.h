@@ -205,19 +205,19 @@ T Deque<T>::pop_front()
 template <class T>
 void Deque<T>::push_back(const T &elem)
 {
-    this->tryExtend();
     ++size_;
     data_[right_] = elem;
     this->incMod(right_);
+    this->tryExtend();
 }
 
 template<class T>
 void Deque<T>::push_front(const T &elem)
 {
-    this->tryExtend();
     ++size_;
     this->decMod(left_);
     data_[left_] = elem;
+    this->tryExtend();
 }
 
 template <class T>
