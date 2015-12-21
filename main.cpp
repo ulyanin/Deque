@@ -6,7 +6,7 @@
 #include <deque>
 
 const int LARGE_TEST_SIZE = (int)(1e7);
-
+const int MEDIUM_TEST_SIZE = (int)(1e4);
 
 BOOST_AUTO_TEST_CASE (simply_test)
 {
@@ -167,12 +167,12 @@ BOOST_AUTO_TEST_CASE(sort_heap)
         dequeTrue.push_back(elem);
     }
     boost::timer t1;
-    std::make_heap(deque.rbegin(), deque.rend());
+    std::make_heap(deque.begin(), deque.end());
     std::sort_heap(deque.begin(), deque.end());
     std::cout << "time for heap sorting our deque = " << t1.elapsed() << std::endl;
 
     boost::timer t2;
-    std::make_heap(dequeTrue.rbegin(), dequeTrue.rend());
+    std::make_heap(dequeTrue.begin(), dequeTrue.end());
     std::sort_heap(dequeTrue.begin(), dequeTrue.end());
     std::cout << "time for heap sorting stl deque = " << t2.elapsed() << std::endl;
     BOOST_CHECK_EQUAL_COLLECTIONS(deque.begin(), deque.end(), dequeTrue.begin(), dequeTrue.end());
@@ -182,7 +182,32 @@ BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE (access_check) // name of the test suite is stringtest
 
-BOOST_AUTO_TEST_CASE(terators)
+BOOST_AUTO_TEST_CASE(push_back_itself)
+{
+    std::cout << "testing push_back into from deque to itself" << std::endl;
+    Deque<int> deque;
+    std::deque<int> dequeTrue;
+    int n = 10;
+    for (int i = 0; i < n; ++i) {
+        int elem = rand();
+        deque.push_back(elem);
+        dequeTrue.push_back(elem);
+    }
+    n = MEDIUM_TEST_SIZE;
+    for (int i = 0; i < n; ++i) {
+        deque.push_back(deque.front());
+        dequeTrue.push_back(dequeTrue.front());
+    }
+    for (int i = 0; i < n; ++i) {
+        deque.push_front(deque.front());
+        dequeTrue.push_front(dequeTrue.front());
+    }
+    BOOST_CHECK_EQUAL_COLLECTIONS(deque.begin(), deque.end(), dequeTrue.begin(), dequeTrue.end());
+    BOOST_CHECK_EQUAL_COLLECTIONS(deque.rbegin(), deque.rend(), dequeTrue.rbegin(), dequeTrue.rend());
+    BOOST_CHECK_EQUAL_COLLECTIONS(deque.cbegin(), deque.cend(), dequeTrue.cbegin(), dequeTrue.cend());
+    BOOST_CHECK_EQUAL_COLLECTIONS(deque.crbegin(), deque.crend(), dequeTrue.crbegin(), dequeTrue.crend());
+}
+BOOST_AUTO_TEST_CASE(iterators)
 {
     std::cout << "testing iterators" << std::endl;
     Deque<int> deque;
